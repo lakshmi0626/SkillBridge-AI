@@ -1,0 +1,33 @@
+services:
+  db:
+    image: postgres:16-alpine
+    environment:
+      POSTGRES_DB: skillbridge_db
+      POSTGRES_USER: skillbridge
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-local_dev_only_change_me}
+    volumes: [postgres_data:/var/lib/postgresql/data]
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U skillbridge -d skillbridge_db"]
+      interval: 5s
+      timeout: 5s
+      retries: 10
+  backend:
+    build: ./backend
+    environment:
+      DATABASE_URL: postgresql+psycopg://skillbridge:${POSTGRES_PASSWORD:-local_dev_only_change_me}@db:5432/skillbridge_db
+      SECRET_KEY: ${SECRET_KEY:?Set SECRET_KEY in .env}
+      FRONTEND_ORIGIN: http://localhost:8080
+      UPLOAD_DIR: /app/storage/resumes
+    volumes: [resume_data:/app/storage/resumes]
+    depends_on:
+      db: {condition: service_healthy}
+    ports: ["8000:8000"]
+  frontend:
+    build:
+      context: ./frontend
+      args: {VITE_API_URL: http://localhost:8000/api}
+    depends_on: [backend]
+    ports: ["8080:80"]
+volumes:
+  postgres_data:
+  resume_data:

@@ -1,0 +1,2 @@
+import {describe,it,expect} from 'vitest';import{render,screen}from'@testing-library/react';import{BrowserRouter}from'react-router-dom';import{AuthProvider}from'./context';import App from'./App';
+describe('SkillBridge authentication shell',()=>{it('redirects unauthenticated visitors to sign in',()=>{window.history.pushState({},'', '/');render(<BrowserRouter><AuthProvider><App/></AuthProvider></BrowserRouter>);expect(screen.getByText(/Welcome back to your career workspace/i)).toBeInTheDocument()})});
